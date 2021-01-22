@@ -1,0 +1,650 @@
+
+const drawEllipse = cornerstoneTools.importInternal('drawing/drawEllipse');
+const pointInEllipse = cornerstoneTools.importInternal('util/ellipse/pointInEllipse');
+const calculateEllipseStatistics = cornerstoneTools.importInternal('util/ellipse/calculateEllipseStatistics');
+const ellipticalRoiCursor = cornerstoneTools.importInternal('cursors/index');
+
+var q = 0;
+function _pointInEllipse(ellipse, location) {
+    const xRadius = ellipse.width / 2;
+    const yRadius = ellipse.height / 2;
+
+    if (xRadius <= 0.0 || yRadius <= 0.0) {
+        return false;
+    }
+
+    const center = {
+        x: ellipse.left + xRadius,
+        y: ellipse.top + yRadius,
+    };
+
+    /* This is a more general form of the circle equation
+     *
+     * X^2/a^2 + Y^2/b^2 <= 1
+     */
+
+    const normalized = {
+        x: location.x - center.x,
+        y: location.y - center.y,
+    };
+
+    const inEllipse =
+        (normalized.x * normalized.x) / (xRadius * xRadius) +
+        (normalized.y * normalized.y) / (yRadius * yRadius) <=
+        1.0;
+
+    return inEllipse;
+}
+
+
+
+/**
+ * @public
+ * @class EllipticalRoiTool
+ * @memberof Tools.Annotation
+ * @classdesc Tool for drawing elliptical regions of interest, and measuring
+ * the statistics of the enclosed pixels.
+ * @extends Tools.Base.BaseAnnotationTool
+ */
+ class EllipticalModifiedTool extends BaseAnnotationTool {
+  constructor(props = {}) {
+    const defaultProps = {
+      name: 'EllipticalModified',
+      supportedInteractionTypes: ['Mouse', 'Touch'],
+      configuration: {
+        // showMinMax: false,
+        // showHounsfieldUnits: true,
+      },
+      svgCursor: ellipticalRoiCursor,
+    };
+
+    super(props, defaultProps);
+
+    this.throttledUpdateCachedStats = throttle(this.updateCachedStats, 110);
+  }
+
+  createNewMeasurement(eventData) {
+    const goodEventData =
+      eventData && eventData.currentPoints && eventData.currentPoints.image;
+
+    if (!goodEventData) {
+      logger.error(
+        `required eventData not supplied to tool ${this.name}'s createNewMeasurement`
+      );
+
+      return;
+    }
+
+    return {
+      visible: true,
+      active: true,
+      color: undefined,
+      invalidated: true,
+      handles: {
+        start: {
+          x: eventData.currentPoints.image.x,
+          y: eventData.currentPoints.image.y,
+          highlight: true,
+          active: false,
+        },
+        end: {
+          x: eventData.currentPoints.image.x,
+          y: eventData.currentPoints.image.y,
+          highlight: true,
+          active: true,
+        },
+        initialRotation: eventData.viewport.rotation,
+        textBox: {
+          active: false,
+          hasMoved: false,
+          movesIndependently: false,
+          drawnIndependently: true,
+          allowedOutsideImage: true,
+            hasBoundingBox: true,
+
+        },
+      },
+    };
+  }
+
+  pointNearTool(element, data, coords, interactionType) {
+    const hasStartAndEndHandles =
+      data && data.handles && data.handles.start && data.handles.end;
+    const validParameters = hasStartAndEndHandles;
+
+    if (!validParameters) {
+      logger.warn(
+        `invalid parameters supplied to tool ${this.name}'s pointNearTool`
+      );
+    }
+
+    if (!validParameters || data.visible === false) {
+      return false;
+    }
+
+    const distance = interactionType === 'mouse' ? 15 : 25;
+    const startCanvas = cornerstone.pixelToCanvas(
+      element,
+      data.handles.start
+    );
+    const endCanvas = cornerstone.pixelToCanvas(
+      element,
+      data.handles.end
+    );
+
+    const minorEllipse = {
+      left: Math.min(startCanvas.x, endCanvas.x) + distance / 2,
+      top: Math.min(startCanvas.y, endCanvas.y) + distance / 2,
+      width: Math.abs(startCanvas.x - endCanvas.x) - distance,
+      height: Math.abs(startCanvas.y - endCanvas.y) - distance,
+    };
+
+    const majorEllipse = {
+      left: Math.min(startCanvas.x, endCanvas.x) - distance / 2,
+      top: Math.min(startCanvas.y, endCanvas.y) - distance / 2,
+      width: Math.abs(startCanvas.x - endCanvas.x) + distance,
+      height: Math.abs(startCanvas.y - endCanvas.y) + distance,
+    };
+
+
+    const pointInMinorEllipse = _pointInEllipse(minorEllipse, coords);
+    const pointInMajorEllipse = _pointInEllipse(majorEllipse, coords);
+
+    if (pointInMajorEllipse && !pointInMinorEllipse) {
+      return true;
+    }
+
+    return false;
+  }
+ 
+  updateCachedStats(image, element, data) {
+    const seriesModule =
+      cornerstone.metaData.get('generalSeriesModule', image.imageId) ||
+      {};
+    const modality = seriesModule.modality;
+    const pixelSpacing = getPixelSpacing(image);
+    const midCoords = _getMiddleCoords(data.handles.start, data.handles.end);
+    const stats = _calculateStats(
+      image,
+        element,
+        midCoords,
+      data.handles,
+      pixelSpacing
+    );
+
+    data.cachedStats = stats;
+    data.invalidated = false;
+  }
+
+  renderToolData(evt) {
+    const toolData = cornerstoneTools.getToolState(evt.currentTarget, this.name);
+
+    if (!toolData) {
+      return;
+    }
+
+    const eventData = evt.detail;
+    const { image, element } = eventData;
+      const lineWidth = cornerstoneTools.toolStyle.getToolWidth();
+
+      const { handleRadius, drawHandlesOnHover } = this.configuration;
+      const context = getNewContext(eventData.canvasContext.canvas);
+     
+    const { rowPixelSpacing, colPixelSpacing } = getPixelSpacing(image);
+
+    // Meta
+    const seriesModule =
+      cornerstone.metaData.get('generalSeriesModule', image.imageId) ||
+      {};
+
+    // Pixel Spacing
+    const modality = seriesModule.modality;
+    const hasPixelSpacing = rowPixelSpacing && colPixelSpacing;
+
+    draw(context, context => {
+      // If we have tool data for this element - iterate over each set and draw it
+      for (let i = 0; i < toolData.data.length; i++) {
+        const data = toolData.data[i];
+
+        if (data.visible === false) {
+          continue;
+        }
+
+        // Configure
+        const color = cornerstoneTools.toolColors.getColorIfActive(data);
+        const handleOptions = {
+          color,
+          handleRadius,
+          drawHandlesIfActive: drawHandlesOnHover,
+          };
+        //  context.font = 3;
+        setShadow(context, this.configuration);
+
+        
+        // Draw
+        drawEllipse(
+          context,
+          element,
+          data.handles.start,
+          data.handles.end,
+          {
+            color,
+          },
+          'pixel',
+          data.handles.initialRotation
+        );
+        drawHandles(context, eventData, data.handles, handleOptions);
+
+        // Update textbox stats
+        if (data.invalidated === true) {
+          if (data.cachedStats) {
+            this.throttledUpdateCachedStats(image, element, data);
+          } else {
+            this.updateCachedStats(image, element, data);
+          }
+        }
+
+        // Default to textbox on right side of ROI
+        if (!data.handles.textBox.hasMoved) {
+          const defaultCoords = getROITextBoxCoords(
+            eventData.viewport,
+            data.handles
+          );
+
+          Object.assign(data.handles.textBox, defaultCoords);
+        }
+
+        const textBoxAnchorPoints = handles =>
+            _findTextBoxAnchorPoints(handles.start, handles.end);
+
+          const textBoxContent = _createTextBoxContent(
+          i+1,
+          context,
+          image.color,
+          data.cachedStats,
+          modality,
+          hasPixelSpacing,
+          this.configuration
+        );
+
+        data.unit = _getUnit(modality, this.configuration.showHounsfieldUnits);
+
+        drawLinkedTextBox(
+          context,
+          element,
+          data.handles.textBox,
+          textBoxContent,
+          data.handles,
+          textBoxAnchorPoints,
+          color,
+          lineWidth,
+          10,
+          true
+        );
+      }
+    });
+  }
+}
+
+/**
+ *
+ *
+ * @param {*} startHandle
+ * @param {*} endHandle
+ * @returns {Array.<{x: number, y: number}>}
+ */
+function _findTextBoxAnchorPoints(startHandle, endHandle) {
+  const { left, top, width, height } = _getEllipseImageCoordinates(
+    startHandle,
+    endHandle
+  );
+
+  return [
+    {
+      // Top middle point of ellipse
+      x: left + width / 2,
+      y: top,
+    },
+    {
+      // Left middle point of ellipse
+      x: left,
+      y: top + height / 2,
+    },
+    {
+      // Bottom middle point of ellipse
+      x: left + width / 2,
+      y: top + height,
+    },
+    {
+      // Right middle point of ellipse
+      x: left + width,
+      y: top + height / 2,
+    },
+  ];
+}
+
+function _getUnit(modality, showHounsfieldUnits) {
+  return modality === 'CT' && showHounsfieldUnits !== false ? 'HU' : '';
+}
+
+/**
+ *
+ *
+ * @param {*} context
+ * @param {*} isColorImage
+ * @param {*} { area, mean, stdDev, min, max, meanStdDevSUV }
+ * @param {*} modality
+ * @param {*} hasPixelSpacing
+ * @param {*} [options={}] - { showMinMax, showHounsfieldUnits }
+ * @returns {string[]}
+ */
+function _createTextBoxContent(
+    datalength,
+  context,
+    isColorImage,
+    { area, sum, mean, stdDev, min, max, meanStdDevSUV, midCoords } = {},
+  modality,
+  hasPixelSpacing,
+  options = {}
+) {
+ // const showMinMax = options.showMinMax || false;
+  const textLines = [];
+
+  // Don't display mean/standardDev for color images
+    const otherLines = [];
+   context.lineWidth = 2;
+
+    let datalengthString = `ROI E${datalength}`;
+
+    const hasStandardUptakeValues = meanStdDevSUV && meanStdDevSUV.mean !== 0;
+    const unit = _getUnit(modality, options.showHounsfieldUnits);
+
+    let meanString = `Mean: ${numbersWithCommas(mean.toFixed(2))} ${unit}`;
+    let sumString = `Sum: ${sum} ${unit}`;
+    let minString = `Min: ${min} ${unit}`;
+    const maxString = `Max: ${max} ${unit}`;
+
+    const stdDevString = `Std Dev: ${numbersWithCommas(
+        stdDev.toFixed(2)
+    )} ${unit}`;
+    const midCoordsString = `(${midCoords[0].x},${midCoords[0].y}) `;
+    // If this image has SUV values to display, concatenate them to the text line
+    if (hasStandardUptakeValues) {
+        const SUVtext = ' SUV: ';
+
+        const meanSuvString = `${SUVtext}${numbersWithCommas(
+            meanStdDevSUV.mean.toFixed(2)
+        )}`;
+        const stdDevSuvString = `${SUVtext}${numbersWithCommas(
+            meanStdDevSUV.stdDev.toFixed(2)
+        )}`;
+
+        const targetStringLength = Math.floor(
+            context.measureText(`${stdDevString}     `).width
+        );
+
+        while (context.measureText(meanString).width < targetStringLength) {
+            meanString += ' ';
+        }
+
+        otherLines.push(`${meanString}${meanSuvString}`);
+        otherLines.push(`${stdDevString}     ${stdDevSuvString}`);
+
+    } else {
+        otherLines.push(`${sumString}`);
+        otherLines.push(`${stdDevString}`);
+        otherLines.push(`${meanString} `);
+        otherLines.push(`${minString} `);
+        otherLines.push(`${maxString}`);
+    }
+
+
+    textLines.push(`${datalengthString}  ${midCoordsString}`);
+    textLines.push(_formatArea(area, hasPixelSpacing));
+    otherLines.forEach(x => textLines.push(x));
+
+    return textLines;
+}
+
+/**
+ *
+ *
+ * @param {*} area
+ * @param {*} hasPixelSpacing
+ * @returns {string} The formatted label for showing area
+ */
+function _formatArea(area, hasPixelSpacing) {
+  // This uses Char code 178 for a superscript 2
+  const suffix = hasPixelSpacing
+    ? ` cm${String.fromCharCode(178)}`
+    : ` px${String.fromCharCode(178)}`;
+
+  return `Area: ${numbersWithCommas(area.toFixed(2))}${suffix}`;
+}
+
+
+function getOrigPixels(element, x, y, width, height) {
+    if (element === undefined) {
+        throw new Error('parameter element must not be undefined');
+    }
+
+    x = Math.round(x);
+    y = Math.round(y);
+    const enabledElement = cornerstone.getEnabledElement(element);
+    const storedPixels = [];
+    let index = 0;
+	const image = cornerstone.getEnabledElement(element).image;
+	var pixelData = null;
+	
+	if (image.color==true){
+	pixelData = image.origPixelData;
+	}
+	else {
+	pixelData = image.getPixelData();
+	}
+
+    for (let row = 0; row < height; row++) {
+        for (let column = 0; column < width; column++) {
+            const spIndex = ((row + y) * enabledElement.image.columns) + (column + x);
+            storedPixels[index++] = pixelData[spIndex];
+         
+        }
+    }
+   // console.log('sp: ' + storedPixels);
+    return storedPixels;
+}
+
+
+
+/**
+ *
+ *
+ * @param {*} image
+ * @param {*} element
+ * @param {*} handles
+ * @param {*} pixelSpacing
+ * @returns {Object} The Stats object
+ */
+function _calculateStats(image, element,midCoords, handles, pixelSpacing) {
+  // Retrieve the bounds of the ellipse in image coordinates
+  const ellipseCoordinates = _getEllipseImageCoordinates(
+    handles.start,
+    handles.end
+  );
+    midCoords = _getMiddleCoords(handles.start, handles.end);
+  // Retrieve the array of pixels that the ellipse bounds cover
+  const pixels = getOrigPixels(
+    element,
+    ellipseCoordinates.left,
+    ellipseCoordinates.top,
+    ellipseCoordinates.width,
+    ellipseCoordinates.height
+  );
+
+    //dodane bo inaczej nie dziala
+
+
+
+    ///
+  // Calculate the mean & standard deviation from the pixels and the ellipse details.
+  const ellipseMeanStdDev = _calculateEllipseStatistics(
+    pixels,
+    ellipseCoordinates
+  );
+
+
+  let meanStdDevSUV;
+
+  // Calculate the image area from the ellipse dimensions and pixel spacing
+  const area =
+    Math.PI *
+    ((ellipseCoordinates.width * (pixelSpacing.colPixelSpacing || 1)) / 2) *
+    ((ellipseCoordinates.height * (pixelSpacing.rowPixelSpacing || 1)) / 2);
+
+    var pixelValues = pixels.sort();
+    var groups = [];
+
+    var k = Math.round(5 * Math.log10(pixels.length));
+    var WidthClass = Math.round( (ellipseMeanStdDev.max - ellipseMeanStdDev.min) / k);
+
+    var labelsMAX = [];
+    var labelsMIN = [];
+
+ 
+    for (var i = 0; i < k; i++) {
+        groups[i] = 0;
+    }
+
+    for (var a = 0; a < groups.length; a++) {
+        if (a == 0) {
+            labelsMIN[a] = 0;
+        }
+        else {
+            labelsMIN[a] = labelsMIN[a - 1] + WidthClass;
+        }
+    }
+
+    for (var b = 0; b < groups.length; b++) {
+        if (b == 0) {
+            labelsMAX[b] = WidthClass;
+        }
+        else {
+            labelsMAX[b] = labelsMAX[b - 1] + WidthClass;
+        }
+    }
+
+    var labels = [];
+    for (var c = 0; c < groups.length; c++) {
+        labels[c] = labelsMIN[c] + '-' + labelsMAX[c];
+    }
+
+    for (var j = 0; j < pixelValues.length; j++) {
+
+        for (var k = 0; k < (groups.length - 1); k++) {
+
+            if (pixelValues[j] <= WidthClass * (k + 1) && pixelValues[j] > WidthClass * k) {
+                groups[k]++;
+            }
+
+        }
+        if (pixelValues[j] > WidthClass * (groups.length - 1)) {
+            groups[groups.length - 1]++;
+        }
+    }
+
+
+
+
+  return {
+      area: area/100 || 0,
+      sum: ellipseMeanStdDev.sum || 0,
+    count: ellipseMeanStdDev.count || 0,
+    mean: ellipseMeanStdDev.mean || 0,
+    variance: ellipseMeanStdDev.variance || 0,
+    stdDev: ellipseMeanStdDev.stdDev || 0,
+    min: ellipseMeanStdDev.min || 0,
+    max: ellipseMeanStdDev.max || 0,
+      meanStdDevSUV,
+      midCoords: midCoords || 0,
+      pixels: pixels || 0,
+      labelsToHistogram: labels || 0,
+      dataToHistogram: groups || 0
+  };
+}
+
+
+function _calculateEllipseStatistics(sp, ellipse) {
+    let sum = 0;
+    let sumSquared = 0;
+    let count = 0;
+    let index = 0;
+    let min = null;
+    let max = null;
+
+    for (let y = ellipse.top; y < ellipse.top + ellipse.height; y++) {
+        for (let x = ellipse.left; x < ellipse.left + ellipse.width; x++) {
+            const point = {
+                x,
+                y,
+            };
+
+            if (_pointInEllipse(ellipse, point)) {
+                if (min === null) {
+                    min = sp[index];
+                    max = sp[index];
+                }
+
+                sum += sp[index];
+                sumSquared += sp[index] * sp[index];
+                min = Math.min(min, sp[index]);
+                max = Math.max(max, sp[index]);
+                count++;
+            }
+
+            index++;
+        }
+    }
+
+    if (count === 0) {
+        return {
+            count,
+            sum: 0.0,
+            mean: 0.0,
+            variance: 0.0,
+            stdDev: 0.0,
+            min: 0.0,
+            max: 0.0,
+            //  midCoords: midCoords || 0,
+        };
+    }
+
+    const mean = sum / count;
+    const variance = sumSquared / count - mean * mean;
+
+    return {
+        count,
+        sum,
+        mean,
+        variance,
+        stdDev: Math.sqrt(variance),
+        min,
+        max,
+        // midCoords: midCoords || 0,
+    };
+}
+
+/**
+ * Retrieve the bounds of the ellipse in image coordinates
+ *
+ * @param {*} startHandle
+ * @param {*} endHandle
+ * @returns {{ left: number, top: number, width: number, height: number }}
+ */
+function _getEllipseImageCoordinates(startHandle, endHandle) {
+  return {
+    left: Math.round(Math.min(startHandle.x, endHandle.x)),
+    top: Math.round(Math.min(startHandle.y, endHandle.y)),
+    width: Math.round(Math.abs(startHandle.x - endHandle.x)),
+    height: Math.round(Math.abs(startHandle.y - endHandle.y)),
+  };
+}

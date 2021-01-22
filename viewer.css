@@ -1,0 +1,780 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    border: 0;
+    overflow: hidden; /*  Disable scrollbars */
+    display: block;  /* No floating content on sides */
+    background-color: black;
+}
+
+.jsPanel-hdr-r {
+    display: none;
+}
+
+.ui-button-icon-only {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.button {
+    background-color: #459ed7;
+    border: 1;
+    color: white;
+    height: 20px;
+    width: 145px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 11px;
+    border-radius: 12px;
+    margin-bottom: 3px;
+}
+
+
+.jsPanel-content {
+    padding: 4px;
+    overflow-y: visible !important;
+}
+
+.jsPanel-hdr img {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ui-slider .ui-slider-handle {
+    height: 20px;
+}
+
+.ui-icon-custom-default { 
+    background-image: url(images/default.png) !important; 
+}
+
+.ui-icon-custom-orthanc { 
+    background-image: url(images/orthanc-icon.png) !important; 
+}
+
+#display {
+    top: 10px;
+    left: 0px;
+    position: absolute;
+    text-align: left;
+    color: white;
+}
+
+#smallImage1 {
+    width: 100px;
+    height: 100px;
+    top: 60px;
+    left: 0px;
+    background-color: black;
+    border-color:dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#smallImage2 {
+    width: 100px;
+    height: 100px;
+    top: 180px;
+    left: 0px;
+    background-color: black;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#smallImage3 {
+    width: 100px;
+    height: 100px;
+    top: 300px;
+    left: 0px;
+    background-color: black;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#smallImage4 {
+    width: 100px;
+    height: 100px;
+    top: 420px;
+    left: 0px;
+    background-color: black;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+#smallImage5 {
+    width: 100px;
+    height: 100px;
+    top: 540px;
+    left: 0px;
+    background-color: black;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#dicomImageWrapper1 {
+    width: 100%;
+    height: 100%;
+    justify-content: center; /* center horizontally */
+    align-items: center; /* center vertically */
+}
+
+#dicomImage {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+}
+
+#dicomImageWrapper1 {
+    width: 50%;
+    height: 100%;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    border-right-width: 1px;
+    justify-content: center; /* center horizontally */
+    align-items: center; /* center vertically */
+}
+
+#dicomImage1 {
+    top:0px;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+}
+#dicomImageWrapper2 {
+    width: 50%;
+    height: 100%;
+    border-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    border-left-width: 1px;
+    justify-content: center; /* center horizontally */
+    align-items: center; /* center vertically */
+}
+#dicomImage2 {
+    top:0px;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+}
+
+#dicomImageWrapper3 {
+    width: 100%;
+    height: 100%;
+    justify-content: center; /* center horizontally */
+    align-items: center; /* center vertically */
+}
+
+#dicomImage3 {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    /*flex-direction: row-reverse;*/
+    border-left-color: dodgerblue;
+    border-right-color: dodgerblue;
+    border-width: 2px;
+    border-style: solid;
+    margin:auto;
+}
+
+
+#colorbar {	
+	width: 30px;
+	height: 200px;
+    position: absolute;
+    top: 200px;
+    right: 200px;
+}
+
+#color0 {
+    position: absolute;
+    top: 390px;
+    right: 235px;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#color255 {
+    position: absolute;
+    top: 190px;
+    right: 235px;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#topleft {
+    position: absolute;
+    top: 10px;
+    left: 283px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+#topleft1 {
+    position: absolute;
+    top: 10px;
+    left: 283px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#topleft2 {
+    position: absolute;
+    top: 10px;
+    right: 530px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomleft1 {
+    position: absolute;
+    bottom: 60px;
+    left: 283px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomleft2 {
+    position: absolute;
+    bottom: 50px;
+    right: 530px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomleft {
+    position: absolute;
+    bottom: 25px;
+    left: 283px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomleftIndex {
+    position: absolute;
+    bottom: 40px;
+    left: 283px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+
+#topright {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+#topright1 {
+    position: absolute;
+    top: 10px;
+    left: 750px;
+    text-align: right;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+#topright2 {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+/*dolny lewy róg - dane o obrazie -panel 1*/
+#bottomright1 {
+    position: absolute;
+    bottom: 75px;
+    right: 20px !important;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright2 {
+    position: absolute;
+    bottom: 60px;
+    right: 20px !important;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright3 {
+    position: absolute;
+    bottom: 45px;
+    right: 20px !important;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright4 {
+    position: absolute;
+    bottom: 30px;
+    right: 20px !important;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+#bottomright1_1 {
+    position: absolute;
+    bottom: 75px;
+    left: 780px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright2_1 {
+    position: absolute;
+    bottom: 60px;
+    left: 780px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright3_1 {
+    position: absolute;
+    bottom: 45px;
+    left: 780px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright4_1 {
+    position: absolute;
+    bottom: 30px;
+    left: 780px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+
+
+#bottomright1_2 {
+    position: absolute;
+    bottom: 75px;
+    right: 10px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright2_2 {
+    position: absolute;
+    bottom: 60px;
+    right: 10px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright3_2 {
+    position: absolute;
+    bottom: 45px;
+    right: 10px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#bottomright4_2 {
+    position: absolute;
+    bottom: 30px;
+    right: 10px;
+    text-align: left;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+
+#bottom {
+    position: absolute;
+    bottom: 0px;
+    left: 283px;
+    height: 20px;
+    width: 100%;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#bottom1 {
+    position: absolute;
+    bottom: 0px;
+    left: 283px;
+    height: 20px;
+    width: 615px;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#bottom2 {
+    position: absolute;
+    bottom: 0px;
+    right:5px;
+    height: 20px;
+    width: 615px;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.alert {
+    color: #f00;
+    font-weight: bold;
+}
+
+.restoreImage {
+    position: relative;
+    top: 5px;
+}
+
+#mainContainer {
+    display: flex;
+    flex-direction: row;
+    background-color: black;
+}
+
+#leftPanel {
+    min-width: 280px;
+    background-color: black;
+}
+
+#one {
+    width: 100%;
+    background-color: black;
+    display: flex;
+}
+
+.cornerstone-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    justify-content: center; /* center horizontally */
+    align-items: center; /* center vertically */
+}
+
+#two {
+    width: 0%;
+    display: flex;
+    background-color:black;
+    
+}
+
+
+#tree {
+    width: 0%;
+    display: flex;
+}
+
+.panel_boczny {
+    /*right: 280px;*/
+    font-family: Georgia;
+    /*min-width: 100px;*/
+    padding: 5px 5px 5px 10px;
+    /*margin-top: 15px;*/
+    font-size: 13px;
+    background-color: black;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+#properties {
+    width: 100%;
+    min-width: 100px;
+    margin-top: 5px;
+}
+
+#menulayer {
+    margin-top: 5px;
+}
+
+#visiblelayer {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+
+#colorlayer, #opacitylayer {
+    margin-bottom: 5px;
+}
+
+
+
+#hist {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
+#dynamicCurves {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
+#kidneyCurves {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
+#Results {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
+#histROI {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
+#hist_image {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 100px;
+    background-color: aliceblue;
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+    /*position: absolute;*/
+}
+
+#hist_roi1 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 0px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#hist_roi2 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 210px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#hist_roi3 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 420px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#closeHistROI {
+    width: 100px;
+    height: 50px;
+    bottom: 10px;
+    background-color: #459ed7;
+    position: absolute;
+    right: 30%;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+#dynCurves {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 220px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#dynKidneyCurves {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 0px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#dynBackgroundCurves {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 400px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#dynKidneyCurvesGamma {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 600px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#result1 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 0px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#result2 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 300px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#result3 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 600px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#closeCurves {
+    width: 100px;
+    height: 50px;
+    bottom: 10px;
+    background-color: #459ed7;
+    position: absolute;
+    right: 30%;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#closeKidneyCurves {
+    width: 100px;
+    height: 50px;
+    bottom: 10px;
+    background-color: #459ed7;
+    position: absolute;
+    right: 30%;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#closeResults {
+    width: 100px;
+    height: 50px;
+    bottom: 10px;
+    background-color: #459ed7;
+    position: absolute;
+    right: 30%;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+#sum, #mean, #stDev, #min, #max,#choosetype {
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
