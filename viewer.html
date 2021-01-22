@@ -52,7 +52,7 @@
 
             <div id="buttons"></div>
 
-           
+
 
         </div>
 
@@ -116,7 +116,8 @@
             <div id="Results">
                 <canvas id="result1"></canvas>
                 <canvas id="result2"></canvas>
-                <canvas id="result3">
+                <canvas id="result3"></canvas>
+                <!--                <canvas id="result3">
 
                     <h1 style="text-align:center;">Left Kidney Flow</h1>
                     <p id="1" , style="text-align:left;">by lung</p>
@@ -124,17 +125,32 @@
                     <p id="3" , style="text-align:left;">by aorta</p>
 
                     <h1 style="text-align:center;">Right Kidney Flow</h1>
-                    <p id="1" , style="text-align:left;">by lung</p>
-                    <p id="2" , style="text-align:left;">by heart</p>
-                    <p id="3" , style="text-align:left;">by aorta</p>
+                    <p id="4" , style="text-align:left;">by lung</p>
+                    <p id="5" , style="text-align:left;">by heart</p>
+                    <p id="6" , style="text-align:left;">by aorta</p>
 
                     <h1 style="text-align:center;">GFR</h1>
+                    <p id="7" , style="text-align:left;">by lung</p>
+                    <p id="8" , style="text-align:left;">by heart</p>
+                    <p id="9" , style="text-align:left;">by aorta</p>
+
+                </canvas>-->
+                <!--
+                    <h1 style="text-align:center;">Left Kidney Flow</h1>
                     <p id="1" , style="text-align:left;">by lung</p>
                     <p id="2" , style="text-align:left;">by heart</p>
                     <p id="3" , style="text-align:left;">by aorta</p>
 
-                </canvas>
-                <button id="closeResults">Close</button>
+                    <h1 style="text-align:center;">Right Kidney Flow</h1>
+                    <p id="4" , style="text-align:left;">by lung</p>
+                    <p id="5" , style="text-align:left;">by heart</p>
+                    <p id="6" , style="text-align:left;">by aorta</p>
+
+                    <h1 style="text-align:center;">GFR</h1>
+                    <p id="7" , style="text-align:left;">by lung</p>
+                    <p id="8" , style="text-align:left;">by heart</p>
+                <p id="9" , style="text-align:left;">by aorta</p>-->
+
             </div>
 
         </div>
@@ -194,20 +210,20 @@
                 </div>
             </div>
 
-           
+
 
 
         </div>
     </div>
 
-   
+
     <div id="topleft2"></div>
 
     <div id="bottomleft"></div>
     <div id="bottomleftIndex"></div>
 
     <div id="toolbar-content">
-        <div class="toolbar-view">       
+        <div class="toolbar-view">
             <button class="button">Reverse contrast</button>
             <button class="button">Interpolation</button>
             <button class="button">Rotation</button>
@@ -243,7 +259,7 @@
                 <option value="hotBody">Hot body</option>
                 <option value="coldBody">Cold body</option>
                 <option value="flower">Flower</option>
-               
+
             </select>
         </div>
 
@@ -259,14 +275,14 @@
         <div class="toolbar-tool">
             <button class="button">Probe</button>
             <button class="button">Length</button>
-            <button class="button">Angle</button>          
+            <button class="button">Angle</button>
             <button class="button">Eliptical Roi</button>
             <button class="button">RectangleRoi</button>
             <button class="button">Freehand Roi</button>
             <button class="button">Add text marker</button>
             <button class="button">Turn off Tools</button>
-			<button class="button" id="buttonDynCurves">Dynamic curves</button>
-            <button class="button" id="deleteFROI">Delete FreehandROI</button>			
+            <button class="button" id="buttonDynCurves">Dynamic curves</button>
+            <button class="button" id="deleteFROI">Delete FreehandROI</button>
             <div> <label id="labelHist"> <b>Histogram: </b></label> </div>
             <div class="toolbar-histogram">
                 <button class="button" id="Histogram">Image</button>
@@ -278,7 +294,7 @@
     <div id="toolbar-sync">
         <div class="toolbar-sync">
             <button class="button" id="referencelines">Add reference lines</button>
-            <button class="button" id="wwwl2">Turn off windowing</button>             
+            <button class="button" id="wwwl2">Turn off windowing</button>
         </div>
     </div>
 
@@ -310,6 +326,9 @@
     <script src="https://unpkg.com/cornerstone-tools@%5E4"></script>
     <!-- <script src="ctools.js" type="text/javascript"></script> -->
 
+    <!--saving image-->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
 
     <!-- For zlib (deflate) and JPEG decompression -->
     <script src="../libs/pako_inflate.min.js" type="text/javascript"></script>
@@ -326,6 +345,6 @@
     <script src="lengthmodifiedtool.js" type="text/javascript"></script>
     <script src="colormap.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
-	 <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> -->
 </body>
 </html>

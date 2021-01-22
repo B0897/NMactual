@@ -1,4 +1,5 @@
 const external = cornerstoneTools.importInternal('.cornerstoneTools/src/externalModules.js');
+//const BaseTool = cornerstoneTools.importInternal('.cornerstoneTools/src/base/BaseTool.js');
 const BaseAnnotationTool = cornerstoneTools.importInternal('base/BaseAnnotationTool');
 
 // State

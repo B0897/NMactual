@@ -1,8 +1,32 @@
+//const external = cornerstoneTools.importInternal('.cornerstoneTools/src/externalModules.js');
+//const BaseTool = cornerstoneTools.importInternal('.cornerstoneTools/src/base/BaseTool.js');
+//const BaseAnnotationTool = cornerstoneTools.importInternal('base/BaseAnnotationTool');
 
+//// State
+//const getToolState = cornerstoneTools.importInternal('stateManagement/toolState');
+//const toolStyle = cornerstoneTools.importInternal('stateManagement/toolStyle');
+//const toolColors = cornerstoneTools.importInternal('stateManagement/toolColors');
+
+
+//// Drawing
+//const getNewContext = cornerstoneTools.importInternal('drawing/getNewContext');
+//const draw = cornerstoneTools.importInternal('drawing/draw');
+//const drawHandles = cornerstoneTools.importInternal('drawing/drawHandles');
 const drawEllipse = cornerstoneTools.importInternal('drawing/drawEllipse');
+//const drawLinkedTextBox = cornerstoneTools.importInternal('drawing/drawLinkedTextBox');
+//const setShadow = cornerstoneTools.importInternal('drawing/setShadow');
+
+
+//// Util
 const pointInEllipse = cornerstoneTools.importInternal('util/ellipse/pointInEllipse');
 const calculateEllipseStatistics = cornerstoneTools.importInternal('util/ellipse/calculateEllipseStatistics');
+//const calculateSUV = cornerstoneTools.importInternal('util/calculateSUV');
+//const getROITextBoxCoords = cornerstoneTools.importInternal('util/getROITextBoxCoords');
+//const numbersWithCommas = cornerstoneTools.importInternal('util/numbersWithCommas');
+//const throttle = cornerstoneTools.importInternal('util/throttle');
 const ellipticalRoiCursor = cornerstoneTools.importInternal('cursors/index');
+//const getLogger = cornerstoneTools.importInternal('util/logger');
+//const getPixelSpacing = cornerstoneTools.importInternal('util/getPixelSpacing');
 
 var q = 0;
 function _pointInEllipse(ellipse, location) {

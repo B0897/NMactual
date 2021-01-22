@@ -1,4 +1,6 @@
 
+//const LookupTable = cornerstone.importInternal('.cornerstone/src/colors/LookupTable.js');
+
 const COLOR_TRANSPARENT = [0, 0, 0, 0];
 
 // Colormaps

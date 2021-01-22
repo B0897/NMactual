@@ -111,7 +111,7 @@ const freehandIntersect = cornerstoneTools.importInternal('util/freehand/index')
       hasMoved: false,
       movesIndependently: false,
       drawnIndependently: true,
-      allowedOutsideImage: true, // TODO false
+      allowedOutsideImage: true,
       hasBoundingBox: true,
     };
 
