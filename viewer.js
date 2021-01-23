@@ -144,7 +144,13 @@ function calculateKidney() {
     //2 -> outline rightLung
     //3 -> outline leftVentricle
     //4 -> outline aorta
-    //5 -> save and draw Curves
+    //5 -> calculate background, display curves, calculate and display gamma function for lung
+    //6 -> calculate and display gamma function for ventricle
+    //7 -> calculate and display gamma function for aorta, shift gamma integrals and calculate renal flow\
+    //8 -> calculate filtration and disply results
+    //9 -> enable saving results
+    //next -> close study
+
 
     switch (stage) {
         case 0:
@@ -199,9 +205,8 @@ function calculateKidney() {
             document.getElementById("Study").innerHTML = 'KS - aorta';
             break;
         case 7:
+            document.getElementById("Study").innerHTML = 'KS - results';
             aortaGammaIntegral = drawGammaFit(aortaCurve, "aorta");
-            break;
-        case 8:
             // shift organ gamma function integral to fit to kidney curve (every single organ gamma integral to every kidney activity curve)
             rightLungGammaIntegralLeftFitted = Pasow(leftKidneyCurve, rightLungGammaIntegral);
             leftVentricleGammaIntegralLeftFitted = Pasow(leftKidneyCurve, leftVentricleGammaIntegral);
@@ -240,7 +245,7 @@ function calculateKidney() {
             console.log("total");
             console.log(FLOW.TotalFlow.cpl, FLOW.TotalFlow.cse, FLOW.TotalFlow.cao,);
             break;
-        case 9:
+        case 8:
             // calculate renal filtration
             GFR = calcFiltration();
             console.log();
@@ -248,81 +253,39 @@ function calculateKidney() {
             console.log("GFR: " + GFR.gfr);
             console.log("GFRL: " + GFR.gfrl);
             console.log("GFRL: " + GFR.gfrr);
-
-            console.log(" -----without cmake");
             displayResults();
-
-            var save = confirm("Save results 0?");
+            document.getElementById("Study").innerHTML = 'KS - save to file';
+            break;
+        case 9:
+            var save = confirm("Save results 1?");
             try {
-                if (save) saveResults();
+                if (save) saveResults1();
             } catch (e) {
                 console.log("exception apeared while saveing results: " + e);
             }
-
-            console.log("watch out !!!!!!!!! disapearing results ");
             break;
         case 10:
-            var save = confirm("Save results 2?");
             try {
-                if (save) saveResults2();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 11:
-            var save = confirm("Save results 3?");
-            try {
-                if (save) saveResults3();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 12:
-            var save = confirm("Save results 4?");
-            try {
-                if (save) saveResults4();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 13:
-            var save = confirm("Save results 5?");
-            try {
-                if (save) saveResults5();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 14:
-            var save = confirm("Save results 6?");
-            try {
-                if (save) saveResults6();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 17:
-            try {
-                displayImageSum(0, NumberOfFrames - 1);
+                displayImageSum2(0, NumberOfFrames - 1);
             } catch (e) {
                 console.log("exception apeared while displaying sum : " + e);
             }
             break;
-        case 18:
+        case 11:
             try {
-                displayImageSum(0, frameAtTime(40));
+                displayImageSum2(0, frameAtTime(40));
             } catch (e) {
-
+                console.log("exception apeared while displaying sum : " + e);
             }
             break;
-        case 19:
+        case 12:
             try {
-                displayImageSum(2, 12);
+                displayImageSum2(2, 12);
             } catch (e) {
-
+                console.log("exception apeared while displaying sum : " + e);
             }
             break;
-        case 20:
+        case 13:
             // hide both kidney study canvases and clear variables
             document.getElementById("Study").innerHTML = 'Kidney Study';
             $('#kidneyCurves').css('width', '0%');
@@ -358,13 +321,16 @@ function calculateKidney() {
             rigthBackground = [];
             iimage = [];
 
+            var element = $('#dicomImage').get(0);
+            cornerstone.resize(element);
+
             stage = -1;
     }
 
     stage++;
 }
 
-function displayImageSum(start, end) {
+/*function displayImageSum(start, end) {
 
     console.log("~~~~changign viewwww ~~~~~~from: to:"+start+end);
     //validate constraints
@@ -383,6 +349,29 @@ function displayImageSum(start, end) {
     var c = document.getElementById("canvasImage");
     var ctx = c.getContext("2d");
     ctx.putImageData(ImageSum, 0, 0);
+}*/
+
+function displayImageSum2(start, end) {
+
+    console.log("~~~~changign viewwww ~~~~~~from: to:" + start + end);
+    //validate constraints
+    start = Math.max(start, 0);
+    end = Math.min(end, NumberOfFrames);
+
+    // calculate sum of pixel values
+    var ImageSum = [];
+    for (var i = start; i < end; i++) {
+        ImageSum += AllImages[i];
+    }
+    // calculate average
+    ImageSum /= AllImages.length;
+
+    // put image to div
+
+    //var ctx = document.getElementById("dicomImage");//.getContext("2d");
+    $("#dicomImage").attr("src", ImageSum.src);
+
+
 }
 // save outlined roi and select tool for next one
 function outlineRegions(textCurrentOrgan, textNextOrgan) {
@@ -427,7 +416,6 @@ function outlineRegions(textCurrentOrgan, textNextOrgan) {
     if (stage < 5) {
         chooseRoiOutliningTool(textNextOrgan);
     }
-    dane = []; daneR = []; daneF = [];
 
     return { organ, organCurve };
 }
@@ -678,7 +666,6 @@ function calculateStatsBackground(imagePixels, imagePixelSpacingColumn, imagePix
             }
             break;
     }
-
 
     // Retrieve the array of pixels that the rectangle bounds cover
     var pixels = getOrigPixelsOfImages(
@@ -1239,7 +1226,7 @@ function calcFiltration() {
     console.log("aourta Area: " + aorta[0].area);
     console.log("leftbckgrnd Area: " + leftBackground[0].area);
     console.log("rightbckgrnd Area: " + rightBackground[0].area);
-    console.log("image Area: " + iimage.[0].area);
+    console.log("image Area: " + iimage[0].area);
 
     return {
         gfr: gfr,
@@ -1316,8 +1303,6 @@ function displayResults() {
             y: aortaGammaIntegralRightFitted[i]
         }
     }
-
-
 
     var dataset1 = [];
     var dataset2 = [];
@@ -1510,13 +1495,6 @@ function displayResults() {
     ctx6.fillStyle = "blue";
     ctx6.textAlign = "left";
     ctx6.fillText("right kidney: " + GFR.gfrr, canvas.width / 4, canvas.height * (16 / 16));
-
-
-
-    //TODO save results to file
-    //var div = document.getElementById("one");
-    //var img = div.toDataURL("image/png");
-    //document.write('<img src="' + img + '"/>');
 }
 
 // function to get result window as a image
@@ -1558,93 +1536,29 @@ function saveAs(uri, filename) {
     }
 }
 
-function saveResults2() {
-    var div = document.getElementById("one");
-    var img = div.toDataURL("image/png");
-    document.write('<img src="' + img + '"/>');
-    window.location.href = image;
-}
+function saveResults1() {
+    var node = document.getElementById('one');
 
-function saveResults3() {
-
-    var c = document.getElementById("one");
-    var ctx = c.getContext("2d");
-
-    var imgData = ctx.getImageData(0, 0, c.width, c.height);
-
-    ctx.putImageData(imgData, 10, 70);
-}
-
-function saveResults4() {
-    var element = $("#one"); 
-
-    html2canvas(element, {
-        onrendered: function (canvas) {
-            $("#two").append(canvas);
-            getCanvas = canvas;
-        }
-    });
-
-    var imageDataa = getCanvas.toDataURL("image/png");
-    var newData = imageDataa.replace(/^data:image\/png/, "data:application/octet-stream");
-
-}
-
-function saveResults5() {
-
-    var c = document.getElementById("one");
-    var previewimage = [];
-
-    previewimage.append(c);
-    html2canvas(c, previewimage);
-
-}
-
-function saveResults6() {
-    document.getElementById("one").addEventListener("click", function () {
-
-        html2canvas(document.querySelector('#boundary')).then(function (canvas) {
-
-            console.log(canvas);
-            saveAs(canvas.toDataURL(), 'file-name.png');
+    domtoimage.toPng(node)
+        .then(function (dataUrl) {
+            var img = new Image();
+            img.src = dataUrl;
+            downloadURI(dataUrl, "records.png")
+        })
+        .catch(function (error) {
+            console.error('oops, something went wrong!', error);
         });
-    });
-
-/*
-    function saveAs(uri, filename) {
-
-        var link = document.createElement('a');
-
-        if (typeof link.download === 'string') {
-
-            link.href = uri;
-            link.download = filename;
-
-            //Firefox requires the link to be in the body
-            document.body.appendChild(link);
-
-            //simulate click
-            link.click();
-
-            //remove the link when done
-            document.body.removeChild(link);
-
-        } else {
-
-            window.open(uri);
-
-        }
-    }*/
 }
 
-/*
-class MyScale {
-
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
 }
-MyScale.id = 'myScale';
-MyScale.defaults = defaultConfigObject;
-Chart.register(MyScale);*/
-
 
 function ResizeCornerstone() {
     $('#dicomImage').height($(window).height() - $('#slider').parent().height());

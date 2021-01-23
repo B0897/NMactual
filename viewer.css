@@ -195,7 +195,8 @@ html, body {
 	height: 200px;
     position: absolute;
     top: 200px;
-    right: 200px;
+   /* right: 200px;*/
+    right: 20%;
 }
 
 #color0 {
