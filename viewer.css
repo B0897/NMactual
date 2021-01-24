@@ -195,7 +195,8 @@ html, body {
 	height: 200px;
     position: absolute;
     top: 200px;
-    right: 200px;
+   /* right: 200px;*/
+    right: 20%;
 }
 
 #color0 {
@@ -579,6 +580,14 @@ html, body {
     border-left-color: #459ed7;
 }
 
+#Results2 {
+    width: 0px;
+    position: relative;
+    background-color: black;
+    border-left: solid;
+    border-left-color: #459ed7;
+}
+
 #histROI {
     width: 0px;
     position: relative;
@@ -673,11 +682,11 @@ html, body {
     position: absolute;
 }
 
-#dynBackgroundCurves {
+#dynKidneyCurvesGamma {
     width: 400px;
     height: 200px;
     right: 0px;
-    top: 600px;
+    top: 300px;
     background-color: azure;
     border-color: black;
     border-width: 2px;
@@ -685,11 +694,11 @@ html, body {
     position: absolute;
 }
 
-#dynKidneyCurvesGamma {
+#dynBackgroundCurves {
     width: 400px;
-    height: 200px;
+    height: 220px;
     right: 0px;
-    top: 300px;
+    top: 600px;
     background-color: azure;
     border-color: black;
     border-width: 2px;
@@ -722,6 +731,42 @@ html, body {
 }
 
 #result3 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 600px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#r1 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 0px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#r2 {
+    width: 400px;
+    height: 200px;
+    right: 0px;
+    top: 300px;
+    background-color: azure;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    position: absolute;
+}
+
+#r3 {
     width: 400px;
     height: 200px;
     right: 0px;

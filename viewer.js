@@ -71,6 +71,7 @@ $('#hist').css('width', '0%');
 $('#dynamicCurves').css('width', '0%');
 $('#kidneyCurves').css('width', '0%');
 $('#Results').css('width', '0%');
+$('#Results2').css('width', '0%');
 $('#dicomImageWrapper').css('width', '100%');
 
 $('#dynCurves').hide();
@@ -89,6 +90,9 @@ $('#deleteFROI').hide();
 $('#result1').hide();
 $('#result2').hide();
 $('#result3').hide();
+$('#r1').hide();
+$('#r2').hide();
+$('#r3').hide();
 
 // Prevent the access to IE
 if (navigator.appVersion.indexOf("MSIE ") != -1) {
@@ -144,16 +148,28 @@ function calculateKidney() {
     //2 -> outline rightLung
     //3 -> outline leftVentricle
     //4 -> outline aorta
-    //5 -> save and draw Curves
+    //5 -> calculate background, display curves, calculate and display gamma function for lung
+    //6 -> calculate and display gamma function for ventricle
+    //7 -> calculate and display gamma function for aorta, shift gamma integrals and calculate renal flow\
+    //8 -> calculate filtration and disply results
+    //9 -> enable saving results
+    //next -> close study
+
 
     switch (stage) {
         case 0:
             // for study calculations user must outline all regions
+            dane = [];
             var imageOk = confirm("All regions must visible on image : \n both kidneys, right lung part, left ventricle and aorta");
             if (!imageOk) {
                 return;
             }
-            chooseRoiOutliningTool('left kidney');
+            var element = $('#dicomImage').get(0);
+            cornerstoneTools.clearToolState(element, 'EllipticalModified');
+            // print command and run tool
+            alert("Outline left kidney");
+            ElipticalRoiTool();
+            //chooseRoiOutliningTool('left kidney');
             document.getElementById("Study").innerHTML = 'KidneyStudy-Continue';
             break;
         case 1:
@@ -199,9 +215,8 @@ function calculateKidney() {
             document.getElementById("Study").innerHTML = 'KS - aorta';
             break;
         case 7:
+            document.getElementById("Study").innerHTML = 'KS - results';
             aortaGammaIntegral = drawGammaFit(aortaCurve, "aorta");
-            break;
-        case 8:
             // shift organ gamma function integral to fit to kidney curve (every single organ gamma integral to every kidney activity curve)
             rightLungGammaIntegralLeftFitted = Pasow(leftKidneyCurve, rightLungGammaIntegral);
             leftVentricleGammaIntegralLeftFitted = Pasow(leftKidneyCurve, leftVentricleGammaIntegral);
@@ -210,7 +225,8 @@ function calculateKidney() {
             leftVentricleGammaIntegralRightFitted = Pasow(rightKidneyCurve, leftVentricleGammaIntegral);
             aortaGammaIntegralRightFitted = Pasow(rightKidneyCurve, aortaGammaIntegral);
             document.getElementById("Study").innerHTML = 'KS - pasow(pn, p)';
-
+            break;
+        case 8:
             // calculate initial variables for renal flow
             var KplKseKao = calcul();
             console.log("kplL: " + KplKseKao.kplL);
@@ -247,86 +263,27 @@ function calculateKidney() {
             console.log(" --------------- GFR -----------------------");
             console.log("GFR: " + GFR.gfr);
             console.log("GFRL: " + GFR.gfrl);
-            console.log("GFRL: " + GFR.gfrr);
-
-            console.log(" -----without cmake");
+            console.log("GFRR: " + GFR.gfrr);
+            console.log("GFR upt: " + GFR.upt);
+            console.log("GFRL uptl: " + GFR.uptl);
+            console.log("GFRR uptr: " + GFR.uptr);
             displayResults();
-
-            var save = confirm("Save results 0?");
+            document.getElementById("Study").innerHTML = 'KS - save to file';
+            break;
+        case 10:
+            var save = confirm("Save results?");
             try {
                 if (save) saveResults();
             } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-
-            console.log("watch out !!!!!!!!! disapearing results ");
-            break;
-        case 10:
-            var save = confirm("Save results 2?");
-            try {
-                if (save) saveResults2();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
+                console.log("exception apeared while saving results: " + e);
             }
             break;
         case 11:
-            var save = confirm("Save results 3?");
-            try {
-                if (save) saveResults3();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 12:
-            var save = confirm("Save results 4?");
-            try {
-                if (save) saveResults4();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 13:
-            var save = confirm("Save results 5?");
-            try {
-                if (save) saveResults5();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 14:
-            var save = confirm("Save results 6?");
-            try {
-                if (save) saveResults6();
-            } catch (e) {
-                console.log("exception apeared while saveing results: " + e);
-            }
-            break;
-        case 17:
-            try {
-                displayImageSum(0, NumberOfFrames - 1);
-            } catch (e) {
-                console.log("exception apeared while displaying sum : " + e);
-            }
-            break;
-        case 18:
-            try {
-                displayImageSum(0, frameAtTime(40));
-            } catch (e) {
-
-            }
-            break;
-        case 19:
-            try {
-                displayImageSum(2, 12);
-            } catch (e) {
-
-            }
-            break;
-        case 20:
             // hide both kidney study canvases and clear variables
             document.getElementById("Study").innerHTML = 'Kidney Study';
             $('#kidneyCurves').css('width', '0%');
             $('#Results').css('width', '0%');
+            $('#Results1').css('width', '0%');
             $('#dicomImageWrapper').css('width', '100%');
             $('#dynKidneyCurves').hide();
             $('#dynBackgroundCurves').hide();
@@ -335,6 +292,9 @@ function calculateKidney() {
             $('#result1').hide();
             $('#result2').hide();
             $('#result3').hide();
+            $('#r1').hide();
+            $('#r2').hide();
+            $('#r3').hide();
             leftKidney = [];
             leftKidneyCurve = [];
             rightKidney = [];
@@ -358,13 +318,17 @@ function calculateKidney() {
             rigthBackground = [];
             iimage = [];
 
+            var element = $('#dicomImage').get(0);
+            cornerstoneTools.clearToolState(element, 'EllipticalModified');
+            cornerstone.resize(element);
+
             stage = -1;
     }
 
     stage++;
 }
 
-function displayImageSum(start, end) {
+/*function displayImageSum(start, end) {
 
     console.log("~~~~changign viewwww ~~~~~~from: to:"+start+end);
     //validate constraints
@@ -383,6 +347,29 @@ function displayImageSum(start, end) {
     var c = document.getElementById("canvasImage");
     var ctx = c.getContext("2d");
     ctx.putImageData(ImageSum, 0, 0);
+}*/
+
+function displayImageSum2(start, end) {
+
+    console.log("~~~~changign viewwww ~~~~~~from: to:" + start + end);
+    //validate constraints
+    start = Math.max(start, 0);
+    end = Math.min(end, NumberOfFrames);
+
+    // calculate sum of pixel values
+    var ImageSum = [];
+    for (var i = start; i < end; i++) {
+        ImageSum += AllImages[i];
+    }
+    // calculate average
+    ImageSum /= AllImages.length;
+
+    // put image to div
+
+    //var ctx = document.getElementById("dicomImage");//.getContext("2d");
+    $("#dicomImage").attr("src", ImageSum.src);
+
+
 }
 // save outlined roi and select tool for next one
 function outlineRegions(textCurrentOrgan, textNextOrgan) {
@@ -390,29 +377,13 @@ function outlineRegions(textCurrentOrgan, textNextOrgan) {
     var organ = [];
     var organCurve = [];
 
-    // save roi parameters relying on erlier chosen tool
-        switch (roiOutlining) {
-            case '1':
-                for (var i = 0; i < NumberOfFrames; i++) {
-                    organ[i] = calculateStatsEllipse(AllImages[i], dane.data[0].handles, imagePixelSpacingColumn, imagePixelSpacingRow);
-                }
-                break;
-            case '2':
-                for (var i = 0; i < NumberOfFrames; i++) {
-                    organ[i] = calculateStatsRectangle(AllImages[i], daneR.data[0].handles, imagePixelSpacingColumn, imagePixelSpacingRow);
-                }
-                break;
-            case '3':
-                for (var i = 0; i < NumberOfFrames; i++) {
-                    organ[i] = calculateFreehandStatistics(AllImages[i], daneF.data[0].handles.points, imagePixelSpacingColumn, imagePixelSpacingRow);
-                }
-                break;
-        }
 
-    // create single curve array
+
     for (var i = 0; i < NumberOfFrames; i++) {
-        organCurve[i] = organ[i].sum / organ[i].area / FrameDuration[i];
+        organ[i] = calculateStatsEllipse(AllImages[i], dane.data[stage - 1].handles, imagePixelSpacingColumn, imagePixelSpacingRow);
+        organCurve[i] = organ[i].sum / /*organ[i].area /*/ FrameDuration[i];
     }
+
 
     // save kidney coordinates for automatic designation of background 
     if (stage == 1) { // while saving left kidney roi
@@ -424,11 +395,14 @@ function outlineRegions(textCurrentOrgan, textNextOrgan) {
     }
 
     // choose tool for outlining next organ
-    if (stage < 5) {
+/*    if (stage < 5) {
         chooseRoiOutliningTool(textNextOrgan);
+    }*/
+    // run eliptical roi tool
+    if (stage <5) {
+        alert("Outline " + textNextOrgan);
+        //ElipticalRoiTool();
     }
-    dane = []; daneR = []; daneF = [];
-
     return { organ, organCurve };
 }
 
@@ -442,6 +416,7 @@ function chooseRoiOutliningTool(region) {
         cornerstoneTools.clearToolState(element, 'Angle');
         cornerstoneTools.clearToolState(element, 'CobbAngle');
         cornerstoneTools.clearToolState(element, 'TextMarker');
+
         $('#deleteFROI').hide();
         daneF = []; dane = []; daneR = [];
         cornerstone.updateImage(element);
@@ -678,7 +653,6 @@ function calculateStatsBackground(imagePixels, imagePixelSpacingColumn, imagePix
             }
             break;
     }
-
 
     // Retrieve the array of pixels that the rectangle bounds cover
     var pixels = getOrigPixelsOfImages(
@@ -1230,7 +1204,6 @@ function calcFiltration() {
     var gfrr = uptr / upt * gfr;
     console.log("gfrl: " + gfrl + " gfrr: " + gfrr + " gfr: " + gfr);
 
-
     console.log("---------------------------area-----------------------------------------------------------");
     console.log("Left Kidney Area: " + leftKidney[0].area);
     console.log("right Kidney Area: " + rightKidney[0].area);
@@ -1239,24 +1212,28 @@ function calcFiltration() {
     console.log("aourta Area: " + aorta[0].area);
     console.log("leftbckgrnd Area: " + leftBackground[0].area);
     console.log("rightbckgrnd Area: " + rightBackground[0].area);
-    console.log("image Area: " + iimage.[0].area);
+    console.log("image Area: " + iimage[0].area);
 
     return {
         gfr: gfr,
         gfrl: gfrl,
-        gfrr: gfrr
+        gfrr: gfrr,
+        upt: upt,
+        uptl: uptl,
+        uptr: uptr,
     }
 }
 
-var result1Chart = [];
-var result2Chart = [];
+var gammaChart1 = null;
+var gammaChart2 = null;
 
 function displayResults() {
 
     // show both result panels
-    $('#dicomImageWrapper').css('width', '40%');
-    $('#kidneyCurves').css('width', '30%');
-    $('#Results').css('width', '30%');
+    $('#dicomImageWrapper').css('width', '25%');
+    $('#kidneyCurves').css('width', '25%');
+    $('#Results').css('width', '25%');
+    $('#Results2').css('width', '25%');
     var element = $('#dicomImage').get(0);
     cornerstone.resize(element);
     $('#dynKidneyCurves').show();
@@ -1266,11 +1243,270 @@ function displayResults() {
     $('#result1').show();
     $('#result2').show();
     $('#result3').show();
+    $('#r1').show();
+    $('#r2').show();
+    $('#r3').show();
     $('#bottomright1').css('right', '800px');
     $('#bottomright2').css('right', '800px');
     $('#bottomright3').css('right', '800px');
     $('#bottomright4').css('right', '800px');
 
+    if (myKidneyChart) myKidneyChart.destroy();
+    if (myBackgroundChart) myBackgroundChart.destroy();
+    if (myGammaChart) myGammaChart.destroy();
+    if (gammaChart1) gammaChart1.destroy();
+    if (gammaChart2) gammaChart2.destroy();
+    // both kidney curves, all study
+
+    var border1 = frameAtTime(40);
+    var border2 = frameAtTime(4 * 60);
+
+    var left40 = [];
+    var right40 = [];
+    var left460 = [];
+    var right460 = [];
+    var leftend = [];
+    var rightend = [];
+
+    for (var i = 0; i < border1; i++) {
+        left40[i] = {
+            x: TimeArray[i],
+            y: leftKidneyCurve[i]
+        }
+        right40[i] = {
+            x: TimeArray[i],
+            y: rightKidneyCurve[i]
+        }
+    }
+    for (var i = border1-1; i < border2; i++) {
+        left460[i] = {
+            x: TimeArray[i],
+            y: leftKidneyCurve[i]
+        }
+        right460[i] = {
+            x: TimeArray[i],
+            y: rightKidneyCurve[i]
+        }
+    }
+    for (var i = border2-1; i < NumberOfFrames; i++) {
+        leftend[i] = {
+            x: TimeArray[i],
+            y: leftKidneyCurve[i]
+        }
+        rightend[i] = {
+            x: TimeArray[i],
+            y: rightKidneyCurve[i]
+        }
+    }
+
+
+// ----------------------------------------------------- 0-40s -------------------------------------
+    var datasetr1 = []
+    datasetr1[0] = {
+        label: 'left kidney',
+        data: left40,
+        showLine: true,
+        fill: false,
+        borderColor: 'green',
+        borderWidth: 1,
+        pointBackgroundColor: 'green',
+        pointBorderColor: 'green',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+    datasetr1[1] = {
+        label: 'right kidney',
+        data: right40,
+        showLine: true,
+        fill: false,
+        borderColor: 'red',
+        borderWidth: 1,
+        pointBackgroundColor: 'red',
+        pointBorderColor: 'red',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+
+    var canvas = document.getElementById("dynKidneyCurves");
+    var ctxdynkidcurv1 = canvas.getContext("2d");
+    ctxdynkidcurv1.clearRect(0, 0, canvas.width, canvas.height);
+
+    myKidneyChart = new Chart(ctxdynkidcurv1, {
+        type: 'scatter',
+        data: {
+            labels: TimeArray,
+            datasets: datasetr1
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Flow'
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        fontSize: 9,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time [s]'
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontSize: 12,
+                        min: 0,
+                        max: 1500,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Counts/s/cm^2'
+                    }
+                }],
+            }
+        }
+    });
+
+    // ----------------------------------------------------- 40s - 4min -------------------------------------
+    var datasetresult2 = []
+    datasetresult2[0] = {
+        label: 'left kidney',
+        data: left460,
+        showLine: true,
+        fill: false,
+        borderColor: 'green',
+        borderWidth: 1,
+        pointBackgroundColor: 'green',
+        pointBorderColor: 'green',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+    datasetresult2[1] = {
+        label: 'right kidney',
+        data: right460,
+        showLine: true,
+        fill: false,
+        borderColor: 'red',
+        borderWidth: 1,
+        pointBackgroundColor: 'red',
+        pointBorderColor: 'red',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+
+    var canvas = document.getElementById("result1");
+    var ctxresult1 = canvas.getContext("2d");
+    ctxresult1.clearRect(0, 0, canvas.width, canvas.height);
+
+    myGammaChart = new Chart(ctxresult1, {
+        type: 'scatter',
+        data: {
+            labels: TimeArray,
+            datasets: datasetresult2
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Filtration'
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        fontSize: 9,
+                        min: 40,
+                        max: 4*60,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time [s]'
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontSize: 12,
+                        min: 0,
+                        max: 1500,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Counts/s/cm^2'
+                    }
+                }],
+            }
+        }
+    });
+
+// ----------------------------------------------------- 4min - end -------------------------------------
+    var datasetdynkidneycurves = []
+    datasetdynkidneycurves[0] = {
+        label: 'left kidney',
+        data: leftend,
+        showLine: true,
+        fill: false,
+        borderColor: 'green',
+        borderWidth: 1,
+        pointBackgroundColor: 'green',
+        pointBorderColor: 'green',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+    datasetdynkidneycurves[1] = {
+        label: 'right kidney',
+        data: rightend,
+        showLine: true,
+        fill: false,
+        borderColor: 'red',
+        borderWidth: 1,
+        pointBackgroundColor: 'red',
+        pointBorderColor: 'red',
+        pointRadius: 0.1,
+        pointHoverRadius: 0.1
+    };
+
+    var canvas = document.getElementById("r1"); 
+    var ctxr1 = canvas.getContext("2d");
+    ctxr1.clearRect(0, 0, canvas.width, canvas.height);
+
+    myBackgroundChart = new Chart(ctxr1, {
+        type: 'scatter',
+        data: {
+            labels: TimeArray,
+            datasets: datasetdynkidneycurves
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Excretion'
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        fontSize: 9,
+                        min: 4*60,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time [s]'
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontSize: 12,
+                        min: 0,
+                        max: 1500,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Counts/s/cm^2'
+                    }
+                }],
+            }
+        }
+    });
+
+    // ---------------------------------------------------------- gamma integral fitted to kidney curve
+
+    // kidney and gamma integral shifted curves for r2, r3 (KIDNEY FLOW)
     var VectorToChartKidneyLeft = [];
     var VectorToChartKidneyRight = [];
     var VectorToChartLungLeft = [];
@@ -1280,7 +1516,7 @@ function displayResults() {
     var VectorToChartAortaLeft = [];
     var VectorToChartAortaRight = [];
 
-    // prepare data to chart
+
     var end = frameAtTime(40);
     for (var i = 0; i < end; i++) {
         VectorToChartKidneyLeft[i] = {
@@ -1316,8 +1552,6 @@ function displayResults() {
             y: aortaGammaIntegralRightFitted[i]
         }
     }
-
-
 
     var dataset1 = [];
     var dataset2 = [];
@@ -1357,9 +1591,10 @@ function displayResults() {
         };
     }
 
-    var ctx1 = document.getElementById("result1").getContext("2d");
-
-    result1Chart = new Chart(ctx1, {
+    var canvas = document.getElementById("dynKidneyCurvesGamma");
+    var ctxdynkidgam2 = canvas.getContext("2d");
+    ctxdynkidgam2.clearRect(0, 0, canvas.width, canvas.height);
+    gammaChart1 = new Chart(ctxdynkidgam2, {
         type: 'scatter',
         data: {
             labels: TimeArray,
@@ -1382,14 +1617,17 @@ function displayResults() {
                     },
                     scaleLabel: {
                         display: true,
-                        labelString: 'Counts/s*cm^2'
+                        labelString: 'Counts/s/cm^2'
                     }
                 }],
             }
         }
     });
-    var ctx2 = document.getElementById("result2").getContext("2d");
-    result2Chart = new Chart(ctx2, {
+
+    var canvas = document.getElementById("dynBackgroundCurves");
+    var ctxdynbackgrndcurv3 = canvas.getContext("2d");
+    ctxdynbackgrndcurv3.clearRect(0, 0, canvas.width, canvas.height);
+    gammaChart2 = new Chart(ctxdynbackgrndcurv3, {
         type: 'scatter',
         data: {
             labels: TimeArray,
@@ -1419,233 +1657,158 @@ function displayResults() {
         }
     });
 
-    var canvas = document.getElementById("result3");
-    var ctx3 = canvas.getContext("2d");
+    // ----------------------------------------------------- rigth and left FLOW ---------------------------
 
     // display left kidney flow
-    ctx3.font = "18px Arial";
-    ctx3.fillStyle = "red";
-    ctx3.textAlign = "center";
-    ctx3.fillText("Left Kidney Flow", canvas.width / 2, canvas.height *(2/16)); 
+    var canvas = document.getElementById("result2");
+    var ctxresult2 = canvas.getContext("2d");
+    // clean former results 
+    ctxresult2.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by lung: " + FLOW.LeftKidneyFlow.cpl, canvas.width / 4, canvas.height * (4 / 16));
+    ctxresult2.font = "18px Arial";
+    ctxresult2.fillStyle = "red";
+    ctxresult2.textAlign = "center";
+    ctxresult2.fillText("Left Kidney Flow", canvas.width / 2, canvas.height /4-20); 
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by heart: " + FLOW.LeftKidneyFlow.cse, canvas.width / 4, canvas.height * (6 / 16));
+    ctxresult2.font = "13px Arial";
+    ctxresult2.fillStyle = "blue";
+    ctxresult2.textAlign = "left";
+    ctxresult2.fillText("by lung: " + FLOW.LeftKidneyFlow.cpl.toFixed(3), canvas.width / 6, canvas.height/2-20);
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by aorta: " + FLOW.LeftKidneyFlow.cao, canvas.width / 4, canvas.height * (8 / 16));
+    ctxresult2.font = "13px Arial";
+    ctxresult2.fillStyle = "blue";
+    ctxresult2.textAlign = "left";
+    ctxresult2.fillText("by heart: " + FLOW.LeftKidneyFlow.cse.toFixed(3), canvas.width / 6, canvas.height*(3/4)-20);
+
+    ctxresult2.font = "13px Arial";
+    ctxresult2.fillStyle = "blue";
+    ctxresult2.textAlign = "left";
+    ctxresult2.fillText("by aorta: " + FLOW.LeftKidneyFlow.cao.toFixed(3), canvas.width / 6, canvas.height-20);
 
     // display right kidney flow
-    ctx3.font = "18px Arial";
-    ctx3.fillStyle = "red";
-    ctx3.textAlign = "center";
-    ctx3.fillText("Right Kidney Flow", canvas.width / 2, canvas.height * (10 / 16)); 
+    var canvas = document.getElementById("result3");
+    var ctxresult3 = canvas.getContext("2d");
+    ctxresult3.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by lung: " + FLOW.RightKidneyFlow.cpl, canvas.width / 4, canvas.height * (12 / 16)); 
+    ctxresult3.font = "18px Arial";
+    ctxresult3.fillStyle = "red";
+    ctxresult3.textAlign = "center";
+    ctxresult3.fillText("Right Kidney Flow", canvas.width / 2, canvas.height / 4 - 20); 
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by heart: " + FLOW.RightKidneyFlow.cse, canvas.width / 4, canvas.height * (14 / 16)); 
+    ctxresult3.font = "13px Arial";
+    ctxresult3.fillStyle = "blue";
+    ctxresult3.textAlign = "left";
+    ctxresult3.fillText("by lung: " + FLOW.RightKidneyFlow.cpl.toFixed(3), canvas.width / 6, canvas.height / 2 - 20); 
 
-    ctx3.font = "13px Arial";
-    ctx3.fillStyle = "blue";
-    ctx3.textAlign = "left";
-    ctx3.fillText("by aorta: " + FLOW.RightKidneyFlow.cao, canvas.width / 4, canvas.height * (16 / 16));
+    ctxresult3.font = "13px Arial";
+    ctxresult3.fillStyle = "blue";
+    ctxresult3.textAlign = "left";
+    ctxresult3.fillText("by heart: " + FLOW.RightKidneyFlow.cse.toFixed(3), canvas.width / 6, canvas.height * 3 / 4 - 20); 
 
-    
-    myBackgroundChart.destroy();
-    var canvas = document.getElementById("dynBackgroundCurves");
-    var ctx6 = canvas.getContext("2d");
+    ctxresult3.font = "13px Arial";
+    ctxresult3.fillStyle = "blue";
+    ctxresult3.textAlign = "left";
+    ctxresult3.fillText("by aorta: " + FLOW.RightKidneyFlow.cao.toFixed(3), canvas.width / 6, canvas.height - 20);
+
+
+    // ------------------------------------------------ total flow and filtration
+
+    var canvas = document.getElementById("r2");
+    var ctxr2 = canvas.getContext("2d");
+    ctxr2.clearRect(0, 0, canvas.width, canvas.height);
 
     // display total kidney flow
-    ctx6.font = "18px Arial";
-    ctx6.fillStyle = "red";
-    ctx6.textAlign = "center";
-    ctx6.fillText("Total Kidney Flow", canvas.width / 2, canvas.height * (2 / 16));
+    ctxr2.font = "18px Arial";
+    ctxr2.fillStyle = "red";
+    ctxr2.textAlign = "center";
+    ctxr2.fillText("Total Kidney Flow", canvas.width / 2, canvas.height / 4 - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("by lung: " + FLOW.TotalFlow.cpl, canvas.width / 4, canvas.height * (4 / 16));
+    ctxr2.font = "13px Arial";
+    ctxr2.fillStyle = "blue";
+    ctxr2.textAlign = "left";
+    ctxr2.fillText("by lung: " + FLOW.TotalFlow.cpl.toFixed(3), canvas.width / 6, canvas.height / 2 - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("by heart: " + FLOW.TotalFlow.cse, canvas.width / 4, canvas.height * (6 / 16));
+    ctxr2.font = "13px Arial";
+    ctxr2.fillStyle = "blue";
+    ctxr2.textAlign = "left";
+    ctxr2.fillText("by heart: " + FLOW.TotalFlow.cse.toFixed(3), canvas.width / 6, canvas.height * (3 / 4) - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("by aorta: " + FLOW.TotalFlow.cao, canvas.width / 4, canvas.height * (8 / 16));
+    ctxr2.font = "13px Arial";
+    ctxr2.fillStyle = "blue";
+    ctxr2.textAlign = "left";
+    ctxr2.fillText("by aorta: " + FLOW.TotalFlow.cao.toFixed(3), canvas.width / 6, canvas.height - 10);
+
+    console.log("GFR: " + GFR.gfr);
+    console.log("GFRL: " + GFR.gfrl);
+    console.log("GFRR: " + GFR.gfrr);
+    console.log("GFR upt: " + GFR.upt);
+    console.log("GFRL uptl: " + GFR.uptl);
+    console.log("GFRR uptr: " + GFR.uptr);
 
     // display GFR
-    ctx6.font = "18px Arial";
-    ctx6.fillStyle = "red";
-    ctx6.textAlign = "center";
-    ctx6.fillText("GFR", canvas.width / 2, canvas.height * (10 / 16));
+    var canvas = document.getElementById("r3");
+    var ctxr3 = canvas.getContext("2d");
+    ctxr3.clearRect(0, 0, canvas.width, canvas.height);
+    ctxr3.font = "18px Arial";
+    ctxr3.fillStyle = "hotpink";
+    ctxr3.textAlign = "center";
+    ctxr3.fillText("GFR and Uptake", canvas.width / 2, canvas.height/4 - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("total: " + GFR.gfr, canvas.width / 4, canvas.height * (12 / 16));
+    ctxr3.font = "13px Arial";
+    ctxr3.textAlign = "left";
+    ctxr3.fillStyle = "blue";
+    ctxr3.fillText("total:", canvas.width / 8, canvas.height / 2 - 10);
+    ctxr3.fillStyle = "green";
+    ctxr3.fillText(GFR.gfr.toFixed(1) + " ml/min", canvas.width * 2 / 5, canvas.height / 2 - 10);
+    ctxr3.fillStyle = "purple";
+    ctxr3.fillText(GFR.upt.toFixed(1) + "%", canvas.width *3/4, canvas.height / 2 - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("left kidney: " + GFR.gfrl, canvas.width / 4, canvas.height * (14 / 16));
+    ctxr3.font = "13px Arial";
+    ctxr3.textAlign = "left";
+    ctxr3.fillStyle = "blue";
+    ctxr3.fillText("left kidney:", canvas.width / 8, canvas.height * (3 / 4) - 10);
+    ctxr3.fillStyle = "green";
+    ctxr3.fillText(GFR.gfrl.toFixed(1) + " ml/min", canvas.width * 2 / 5, canvas.height * (3 / 4) - 10);
+    ctxr3.fillStyle = "purple";
+    ctxr3.fillText(GFR.uptl.toFixed(1) + "%", canvas.width * 3 / 4, canvas.height * (3 / 4) - 10);
 
-    ctx6.font = "13px Arial";
-    ctx6.fillStyle = "blue";
-    ctx6.textAlign = "left";
-    ctx6.fillText("right kidney: " + GFR.gfrr, canvas.width / 4, canvas.height * (16 / 16));
-
-
-
-    //TODO save results to file
-    //var div = document.getElementById("one");
-    //var img = div.toDataURL("image/png");
-    //document.write('<img src="' + img + '"/>');
+    ctxr3.font = "13px Arial";
+    ctxr3.textAlign = "left";
+    ctxr3.fillStyle = "blue";
+    ctxr3.fillText("right kidney:", canvas.width / 8, canvas.height - 10);
+    ctxr3.fillStyle = "green";
+    ctxr3.fillText(GFR.gfrr.toFixed(1) + " ml/min", canvas.width * 2/5, canvas.height - 10);
+    ctxr3.fillStyle = "purple";
+    ctxr3.fillText(GFR.uptr.toFixed(1) + "%", canvas.width * 3 / 4, canvas.height - 10);
 }
 
 // function to get result window as a image
 function saveResults() {
+    var node = document.getElementById('one');
 
-    document.getElementById("one").addEventListener("click", function () {
-
-        html2canvas(document.querySelector('#boundary')).then(function (canvas) {
-
-            console.log(canvas);
-            saveAs(canvas.toDataURL(), 'file-name.png');
+    domtoimage.toPng(node)
+        .then(function (dataUrl) {
+            var img = new Image();
+            img.src = dataUrl;
+            downloadURI(dataUrl, "records.png")
+        })
+        .catch(function (error) {
+            console.error('oops, something went wrong!', error);
         });
-    });
-
 }
 
-function saveAs(uri, filename) {
-
-    var link = document.createElement('a');
-
-    if (typeof link.download === 'string') {
-
-        link.href = uri;
-        link.download = filename;
-
-        //Firefox requires the link to be in the body
-        document.body.appendChild(link);
-
-        //simulate click
-        link.click();
-
-        //remove the link when done
-        document.body.removeChild(link);
-
-    } else {
-
-        window.open(uri);
-
-    }
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
 }
 
-function saveResults2() {
-    var div = document.getElementById("one");
-    var img = div.toDataURL("image/png");
-    document.write('<img src="' + img + '"/>');
-    window.location.href = image;
-}
 
-function saveResults3() {
-
-    var c = document.getElementById("one");
-    var ctx = c.getContext("2d");
-
-    var imgData = ctx.getImageData(0, 0, c.width, c.height);
-
-    ctx.putImageData(imgData, 10, 70);
-}
-
-function saveResults4() {
-    var element = $("#one"); 
-
-    html2canvas(element, {
-        onrendered: function (canvas) {
-            $("#two").append(canvas);
-            getCanvas = canvas;
-        }
-    });
-
-    var imageDataa = getCanvas.toDataURL("image/png");
-    var newData = imageDataa.replace(/^data:image\/png/, "data:application/octet-stream");
-
-}
-
-function saveResults5() {
-
-    var c = document.getElementById("one");
-    var previewimage = [];
-
-    previewimage.append(c);
-    html2canvas(c, previewimage);
-
-}
-
-function saveResults6() {
-    document.getElementById("one").addEventListener("click", function () {
-
-        html2canvas(document.querySelector('#boundary')).then(function (canvas) {
-
-            console.log(canvas);
-            saveAs(canvas.toDataURL(), 'file-name.png');
-        });
-    });
-
-/*
-    function saveAs(uri, filename) {
-
-        var link = document.createElement('a');
-
-        if (typeof link.download === 'string') {
-
-            link.href = uri;
-            link.download = filename;
-
-            //Firefox requires the link to be in the body
-            document.body.appendChild(link);
-
-            //simulate click
-            link.click();
-
-            //remove the link when done
-            document.body.removeChild(link);
-
-        } else {
-
-            window.open(uri);
-
-        }
-    }*/
-}
-
-/*
-class MyScale {
-
-}
-MyScale.id = 'myScale';
-MyScale.defaults = defaultConfigObject;
-Chart.register(MyScale);*/
-
-
+// ----------------------------------------- other plugin functions -------------------------------
 function ResizeCornerstone() {
     $('#dicomImage').height($(window).height() - $('#slider').parent().height());
     var element = $('#dicomImage').get(0);
@@ -3269,21 +3432,25 @@ $(document).ready(function () {
         $('#dicomImageWrapper').css('width', '100%');
         $('#kidneyCurves').css('width', '0%');
         $('#Results').css('width', '0%');
+        $('#Results2').css('width', '0%');
         var element = $('#dicomImage').get(0);
         cornerstone.resize(element);
         $('#dynKidneyCurves').hide();
         $('#dynBackgroundCurves').hide();
         $('#dynKidneyCurvesGamma').hide();
+        $('#result1').hide();
+        $('#result2').hide();
+        $('#result3').hide();
+        $('#r1').hide();
+        $('#r2').hide();
+        $('#r3').hide();
         $('#closeKidneyCurves').hide();
         $('#bottomright1').css('right', '0px');
         $('#bottomright2').css('right', '0px');
         $('#bottomright3').css('right', '0px');
         $('#bottomright4').css('right', '0px');
-        $('#result1').hide();
-        $('#result2').hide();
-        $('#result3').hide();
-        document.getElementById("Study").innerHTML = 'Kidney Study';
 
+        document.getElementById("Study").innerHTML = 'Kidney Study';
 
         leftKidney = [];
         leftKidneyCurve = [];
@@ -4078,7 +4245,7 @@ $(document).ready(function () {
     var toolbar = $.jsPanel({
         selector: "#buttons",
         position: { top: 10, left: 110 },
-        size: { width: 150, height: 300 },
+        size: { width: 150, height: 310 },
         content: $('#toolbar-content').show(),
         //controls: { buttons: 'none' },
         title: 'Basic'
@@ -4110,7 +4277,6 @@ $(document).ready(function () {
         .next().button().click(Rotation)
         .next().button().click(ZoomIn)
         .next().button().click(ZoomOut)
-        //.next().button().click(function1)
         .next().button().click(calculateKidney)
 
 
